@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Config Fetcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Vazir:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+            background: #0a0e1a;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(88, 28, 135, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 8px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(15, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 35px 30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 32px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .creator {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            color: #94a3b8;
+            background: rgba(139, 92, 246, 0.2);
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .creator a {
+            color: #a855f7;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .creator a:hover {
+            color: #c084fc;
+            text-shadow: 0 0 10px #a855f7;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .input-item {
+            background: rgba(30, 35, 55, 0.8);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .input-item:hover {
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .input-item label {
+            display: block;
+            font-weight: bold;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .input-item input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background: #0a0e1a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            text-align: center;
+            color: #a855f7;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .input-item input:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+        
+        .copy-all {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            display: none;
+        }
+        
+        .copy-all.show {
+            display: block;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(10, 14, 26, 0.8);
+            border-radius: 20px;
+            display: none;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .config-item {
+            background: rgba(30, 35, 55, 0.9);
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border-right: 3px solid #a855f7;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #cbd5e1;
+            position: relative;
+            user-select: all;
+        }
+        
+        .config-item:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateX(-5px);
+            border-right-color: #f59e0b;
+        }
+        
+        .config-item.copied {
+            background: rgba(34, 197, 94, 0.3);
+            border-right-color: #22c55e;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(139, 92, 246, 0.3);
+            border-top: 3px solid #a855f7;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            text-align: center;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 12px;
+            display: none;
+            font-weight: bold;
+        }
+        
+        .status.show {
+            display: block;
+        }
+        
+        .status.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid #22c55e;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid #ef4444;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: none;
+            z-index: 1000;
+            animation: fadeInUp 0.3s;
+            font-family: 'Orbitron', monospace;
+            border: 1px solid #a855f7;
+            white-space: nowrap;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid rgba(139, 92, 246, 0.2);
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .footer p {
+            letter-spacing: 1px;
+        }
+        
+        .copyright {
+            color: #a855f7;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .config-item {
+                font-size: 9px;
+                padding: 10px;
+            }
+            
+            .footer {
+                font-size: 9px;
+            }
+            
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ CONFIG FETCHER ⚡</h1>
+            <div class="creator">
+                🚀 CREATED BY <a href="#" id="creatorLink">@TIREDPROGRAMMER</a> IN BALE 🚀
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <div class="input-item">
+                <label>🔵 VLESS</label>
+                <input type="number" id="vlessCount" min="0" max="20" value="5">
+            </div>
+            <div class="input-item">
+                <label>🟢 VMESS</label>
+                <input type="number" id="vmessCount" min="0" max="20" value="5">
+            </div>
+            <div class="input-item">
+                <label>🟡 SHADOWSOCKS</label>
+                <input type="number" id="ssCount" min="0" max="20" value="5">
+            </div>
+        </div>
+        
+        <button id="getConfigsBtn">🚀 FETCH CONFIGS</button>
+        <button id="copyAllBtn" class="copy-all">📋 COPY ALL CONFIGS</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #94a3b8;">FETCHING CONFIGS...</p>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="result" id="result">
+            <h3 style="color: #cbd5e1; margin-bottom: 15px; font-family: 'Orbitron', monospace;">📦 RECEIVED CONFIGS:</h3>
+            <div id="configsList"></div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">✅ COPIED!</div>
+
+    <script>
+        let currentConfigs = [];
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+        
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast('✅ COPIED!');
+                    return;
+                } catch (err) {
+                }
+            }
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '0';
+            textarea.style.left = '0';
+            textarea.style.width = '100%';
+            textarea.style.height = '100%';
+            textarea.style.opacity = '0';
+            textarea.style.zIndex = '-9999';
+            document.body.appendChild(textarea);
+            
+            const selected = window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0) : false;
+            
+            textarea.select();
+            textarea.setSelectionRange(0, text.length);
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            if (selected) {
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(selected);
+            }
+            
+            if (successful) {
+                showToast('✅ COPIED!');
+            } else {
+                showToast('❌ COPY FAILED');
+            }
+        }
+        
+        async function fetchConfigsFromUrl(url, protocolPrefix, count) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error('Network error');
+                const text = await response.text();
+                const lines = text.split('\n');
+                const configs = lines.filter(line => line.trim().startsWith(protocolPrefix));
+                
+                const validConfigs = [];
+                for (const cfg of configs) {
+                    if (cfg.length >= 50 && cfg.length <= 800) {
+                        let renamed = cfg.includes('#') ? cfg.split('#')[0] : cfg;
+                        renamed = renamed + '#Tiredprogrammer';
+                        validConfigs.push(renamed);
+                    }
+                }
+                
+                return validConfigs.slice(0, count);
+            } catch (error) {
+                console.error(`Error fetching ${protocolPrefix}:`, error);
+                return [];
+            }
+        }
+        
+        async function getAllConfigs(countVless, countVmess, countSs) {
+            const sources = [
+                { url: 'https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/refs/heads/main/configs/Vless.txt', prefix: 'vless://', count: countVless },
+                { url: 'https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/refs/heads/main/configs/Vmess.txt', prefix: 'vmess://', count: countVmess },
+                { url: 'https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/refs/heads/main/configs/ShadowSocks.txt', prefix: 'ss://', count: countSs }
+            ];
+            
+            const promises = [];
+            for (const src of sources) {
+                if (src.count > 0) {
+                    promises.push(fetchConfigsFromUrl(src.url, src.prefix, src.count));
+                }
+            }
+            
+            const results = await Promise.all(promises);
+            return results.flat();
+        }
+        
+        document.getElementById('getConfigsBtn').addEventListener('click', async () => {
+            const vlessCount = parseInt(document.getElementById('vlessCount').value) || 0;
+            const vmessCount = parseInt(document.getElementById('vmessCount').value) || 0;
+            const ssCount = parseInt(document.getElementById('ssCount').value) || 0;
+            
+            if (vlessCount === 0 && vmessCount === 0 && ssCount === 0) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.textContent = '❌ AT LEAST ONE VALUE MUST BE GREATER THAN 0';
+                statusDiv.className = 'status show error';
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 3000);
+                return;
+            }
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('copyAllBtn').classList.remove('show');
+            document.getElementById('status').classList.remove('show');
+            
+            const configs = await getAllConfigs(vlessCount, vmessCount, ssCount);
+            currentConfigs = configs;
+            
+            document.getElementById('loading').classList.remove('show');
+            
+            if (configs.length === 0) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.textContent = '❌ NO VALID CONFIGS FOUND';
+                statusDiv.className = 'status show error';
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 3000);
+                return;
+            }
+            
+            const configsListDiv = document.getElementById('configsList');
+            configsListDiv.innerHTML = '';
+            
+            configs.forEach((config, index) => {
+                const configDiv = document.createElement('div');
+                configDiv.className = 'config-item';
+                configDiv.textContent = config;
+                configDiv.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await copyToClipboard(config);
+                    configDiv.classList.add('copied');
+                    setTimeout(() => {
+                        configDiv.classList.remove('copied');
+                    }, 500);
+                });
+                configsListDiv.appendChild(configDiv);
+            });
+            
+            document.getElementById('result').classList.add('show');
+            document.getElementById('copyAllBtn').classList.add('show');
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = `✅ ${configs.length} CONFIGS SUCCESSFULLY RECEIVED`;
+            statusDiv.className = 'status show success';
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000);
+        });
+        
+        document.getElementById('copyAllBtn').addEventListener('click', async () => {
+            if (currentConfigs.length > 0) {
+                const allConfigsText = currentConfigs.join('\n');
+                await copyToClipboard(allConfigsText);
+            } else {
+                showToast('❌ NO CONFIGS TO COPY');
+            }
+        });
+        
+        document.getElementById('creatorLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'https://bale.ir/Tiredprogrammer';
+        });
+    </script>
+</body>
+</html>
